@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Arduino Measuring Tape — Documentation</title>
+<style>
+  :root {
+    --ink: #16202e;
+    --muted: #5a6577;
+    --line: #dfe4ec;
+    --soft: #f4f6fa;
+    --accent: #2f8bff;
+    --cyan: #17b8d4;
+    --green: #16a34a;
+    --amber: #b45309;
+    --code-bg: #1b2231;
+    --code-ink: #e7edf7;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  body {
+    margin: 0;
+    font-family: "Segoe UI", -apple-system, Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    font-size: 10.5pt;
+    line-height: 1.55;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  @page {
+    size: A4;
+    margin: 17mm 15mm 16mm 15mm;
+  }
+
+  h1, h2, h3, h4 { line-height: 1.25; margin: 0 0 .4em; }
+  h2 {
+    font-size: 17pt;
+    margin-top: 0;
+    padding-bottom: 6px;
+    border-bottom: 2px solid var(--accent);
+    color: #0f1723;
+  }
+  h3 { font-size: 12.5pt; margin-top: 1.4em; color: #10202f; }
+  h4 { font-size: 11pt; margin-top: 1.1em; color: #22303f; }
+
+  p { margin: .55em 0; }
+  ul, ol { margin: .5em 0 .7em; padding-left: 1.35em; }
+  li { margin: .22em 0; }
+
+  code {
+    font-family: "Cascadia Code", Consolas, "SF Mono", Menlo, monospace;
+    font-size: 9pt;
+    background: #eef1f7;
+    border: 1px solid #e0e5ee;
+    border-radius: 4px;
+    padding: 1px 4px;
+  }
+
+  pre {
+    background: var(--code-bg);
+    color: var(--code-ink);
+    border-radius: 8px;
+    padding: 12px 14px;
+    overflow: hidden;
+    font-family: "Cascadia Code", Consolas, "SF Mono", Menlo, monospace;
+    font-size: 8.6pt;
+    line-height: 1.45;
+    white-space: pre;
+    margin: 10px 0;
+    page-break-inside: avoid;
+  }
+  pre code { background: none; border: 0; padding: 0; color: inherit; font-size: inherit; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0 14px;
+    font-size: 9.5pt;
+    page-break-inside: avoid;
+  }
+  th, td {
+    text-align: left;
+    padding: 6px 9px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  th { background: var(--soft); color: #33415a; font-weight: 600; border-bottom: 2px solid var(--line); }
+  tbody tr:nth-child(even) { background: #fafbfd; }
+
+  .section { page-break-before: always; }
+  .nobreak { page-break-inside: avoid; }
+
+  /* Cover */
+  .cover {
+    height: 250mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    page-break-after: always;
+  }
+  .cover .eyebrow { color: var(--accent); font-weight: 700; letter-spacing: 2.5px; font-size: 10pt; text-transform: uppercase; }
+  .cover h1 { font-size: 34pt; margin: 8px 0 4px; letter-spacing: -0.5px; }
+  .cover .subtitle { font-size: 14pt; color: var(--muted); margin-bottom: 26px; }
+  .cover .rule { height: 5px; width: 96px; background: linear-gradient(90deg, var(--cyan), var(--accent)); border-radius: 3px; margin-bottom: 24px; }
+  .cover .meta { color: var(--muted); font-size: 10pt; }
+  .cover .meta b { color: var(--ink); }
+
+  .toc { background: var(--soft); border: 1px solid var(--line); border-radius: 10px; padding: 14px 20px; }
+  .toc ol { margin: 0; padding-left: 1.2em; }
+  .toc li { margin: .28em 0; }
+  .toc a { color: #1f3a5f; text-decoration: none; }
+
+  .callout {
+    border-left: 4px solid var(--accent);
+    background: #f0f6ff;
+    border-radius: 0 8px 8px 0;
+    padding: 10px 14px;
+    margin: 12px 0;
+    page-break-inside: avoid;
+  }
+  .callout.warn { border-left-color: var(--amber); background: #fdf6ec; }
+  .callout.good { border-left-color: var(--green); background: #eefaf1; }
+  .callout .tag { display: block; font-weight: 700; font-size: 8.5pt; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
+
+  .lede { font-size: 11.5pt; color: #2c3a4d; }
+
+  .grid { display: flex; gap: 12px; flex-wrap: wrap; }
+  .card {
+    flex: 1 1 30%;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+    page-break-inside: avoid;
+  }
+  .card h4 { margin: 0 0 4px; font-size: 10pt; color: var(--accent); }
+  .card p { margin: 0; font-size: 9.3pt; color: var(--muted); }
+
+  .pill { display: inline-block; font-size: 8.5pt; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+  .pill.done { background: #e6f8ec; color: #16713b; border: 1px solid #bfe8cd; }
+  .pill.wip { background: #fff4e5; color: #9a5b06; border: 1px solid #f2d9b0; }
+  .pill.todo { background: #eef1f7; color: #5a6577; border: 1px solid #dfe4ec; }
+
+  .swatch { display: inline-block; width: 11px; height: 11px; border-radius: 3px; vertical-align: -1px; margin-right: 6px; border: 1px solid rgba(0,0,0,.12); }
+
+  footer.pgfoot { color: var(--muted); font-size: 8.5pt; border-top: 1px solid var(--line); margin-top: 26px; padding-top: 8px; }
+</style>
+</head>
+<body>
+
+<!-- ============================ COVER ============================ -->
+<section class="cover">
+  <div class="eyebrow">Technical Documentation</div>
+  <h1>Arduino Measuring&nbsp;Tape</h1>
+  <div class="subtitle">Bluetooth tape measure — React&nbsp;Native app &amp; Arduino&nbsp;UNO firmware</div>
+  <div class="rule"></div>
+  <div class="meta">
+    <p>
+      <b>Version:</b> 0.1.0 &nbsp;·&nbsp; <b>Milestone:</b> 1 — Foundation &amp; mockup screens<br>
+      <b>Date:</b> 1 October 2026 &nbsp;·&nbsp; <b>Repository:</b> Arduino Measuring Tape
+    </p>
+    <p>This document covers the architecture, design system, firmware, wire protocol,
+    setup instructions and the Milestone&nbsp;1 progress report.</p>
+  </div>
+</section>
+
+<!-- ============================ TOC ============================ -->
+<section>
+  <h2>Contents</h2>
+  <div class="toc">
+    <ol>
+      <li><a href="#overview">Project overview</a></li>
+      <li><a href="#getting-started">Getting started</a></li>
+      <li><a href="#architecture">System architecture</a></li>
+      <li><a href="#mobile">Mobile application</a></li>
+      <li><a href="#design">Design system</a></li>
+      <li><a href="#screens">Screens in detail</a></li>
+      <li><a href="#firmware">Firmware — Arduino UNO</a></li>
+      <li><a href="#protocol">Wire protocol</a></li>
+      <li><a href="#quality">Quality &amp; verification</a></li>
+      <li><a href="#progress">Progress report — Milestone 1</a></li>
+      <li><a href="#roadmap">Roadmap</a></li>
+      <li><a href="#appendix">Appendix — tokens, glossary, file index</a></li>
+    </ol>
+  </div>
+
+  <div class="callout">
+    <span class="tag">Scope of this milestone</span>
+    A runnable mobile mockup that reproduces the three screens from
+    <code>User Interface-1.pdf</code>, backed by a typed state layer and a simulated
+    sensor feed, plus a first-pass UNO firmware sketch. Bluetooth is <b>not</b> wired
+    up yet — see <a href="#progress">§10</a>.
+  </div>
+</section>
+
+<!-- ============================ 1. OVERVIEW ============================ -->
+<section class="section" id="overview">
+  <h2>1 · Project overview</h2>
+
+  <p class="lede">
+    The Arduino Measuring Tape is a two-part system: a handheld sensor node that
+    measures distance and a phone application that displays, logs and configures it.
+  </p>
+
+  <h3>1.1 What it does</h3>
+  <ul>
+    <li>The <b>UNO node</b> measures distance with an HC-SR04 ultrasonic sensor and streams
+        readings over a Bluetooth SPP link.</li>
+    <li>The <b>phone app</b> shows the live reading on a gauge, keeps a measurement
+        history, and lets the user choose units and alert thresholds.</li>
+    <li>A <b>buzzer</b> on the node provides a local alert when a reading crosses the threshold.</li>
+  </ul>
+
+  <h3>1.2 System diagram</h3>
+  <pre><code>┌───────────────────────────────────┐            ┌────────────────────────────────┐
+│  PHONE  ·  mobile/                │            │  SENSOR NODE  ·  firmware/     │
+│                                   │            │                                │
+│  ┌─────────────┐  ┌────────────┐  │  Bluetooth │  ┌──────────┐   ┌───────────┐  │
+│  │  Screens    │  │  AppState  │  │   SPP      │  │  HC-SR04 │   │  Buzzer   │  │
+│  │  (Expo      │◄─┤  (context) ├──┼────────────┼─►│  ultra-  │   │  (alert)  │  │
+│  │   Router)   │  └─────┬──────┘  │  DIST:127.1│  │  sonic   │   └───────────┘  │
+│  └─────────────┘        │         │  THRESH:30 │  └────┬─────┘                  │
+│        │          ┌─────▼──────┐  │            │       │                        │
+│        └─────────►│DeviceTrans-│  │            │  ┌────▼─────────────────────┐  │
+│                   │port (stub) │  │            │  │ Arduino UNO (ATmega328P) │  │
+│                   └────────────┘  │            │  │  + HC-05 Bluetooth       │  │
+│                                   │            │  └──────────────────────────┘  │
+└───────────────────────────────────┘            └────────────────────────────────┘
+        Today: DIST frames are simulated in-app.      Today: sketch not yet flashed.</code></pre>
+
+  <h3>1.3 Repository layout</h3>
+  <pre><code>Arduino Measuring Tape/
+├── README.md                     Project entry point
+├── PROGRESS.md                   Milestone status report
+├── documentation.pdf             This document
+├── User Interface-1.pdf          Source design mockup
+├── docs/
+│   ├── documentation.html        Source of this PDF
+│   └── UI-SPEC.md                Screen-by-screen design notes
+├── firmware/
+│   ├── README.md                 Wiring + protocol reference
+│   └── measuring_tape/
+│       └── measuring_tape.ino    Arduino UNO sketch
+└── mobile/                       Expo + TypeScript application
+    ├── app.json                  Expo configuration
+    ├── package.json              Dependencies & scripts
+    ├── eslint.config.js          Lint configuration
+    ├── tsconfig.json             TypeScript (with @/* → src/* alias)
+    └── src/
+        ├── app/                  Expo Router routes
+        │   ├── _layout.tsx       Root: providers + stack
+        │   └── (tabs)/
+        │       ├── _layout.tsx   Bottom tab navigator
+        │       ├── index.tsx     Main / Distance
+        │       ├── history.tsx   Measurement History
+        │       └── settings.tsx  Settings
+        ├── components/           Reusable presentational components
+        ├── state/AppState.tsx    Single source of truth
+        ├── services/device.ts    Domain types + DeviceTransport contract
+        ├── data/                 Seed measurements
+        ├── utils/                Unit + time formatting
+        └── theme/index.ts        Design tokens</code></pre>
+</section>
+
+<!-- ============================ 2. GETTING STARTED ============================ -->
+<section class="section" id="getting-started">
+  <h2>2 · Getting started</h2>
+
+  <h3>2.1 Prerequisites</h3>
+  <table>
+    <thead><tr><th>Tool</th><th>Version used</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Node.js</td><td>24.18</td><td>Any LTS ≥ 20 works</td></tr>
+      <tr><td>npm</td><td>11.16</td><td>Ships with Node</td></tr>
+      <tr><td>Expo SDK</td><td>57</td><td>Resolved by <code>expo install</code></td></tr>
+      <tr><td>Arduino IDE</td><td>2.x</td><td>Firmware only; AVR core 1.8.6+</td></tr>
+    </tbody>
+  </table>
+
+  <h3>2.2 Run the mobile app</h3>
+  <pre><code>cd mobile
+npm install        # only needed once
+
+npm run web        # browser preview  → http://localhost:8081
+npm start          # dev server; press a (Android) or i (iOS)
+npm run android    # Android emulator
+npm run typecheck  # tsc --noEmit
+npm run lint       # expo lint</code></pre>
+
+  <div class="callout">
+    <span class="tag">Previewing on a phone</span>
+    Install <b>Expo Go</b>, run <code>npm start</code>, and scan the QR code. The phone and
+    the PC must be on the same network.
+  </div>
+
+  <h3>2.3 Flash the firmware</h3>
+  <ol>
+    <li>Open <code>firmware/measuring_tape/measuring_tape.ino</code> in the Arduino IDE.</li>
+    <li>Select <b>Tools → Board → Arduino UNO</b> and the correct port.</li>
+    <li>Upload. The sketch also mirrors frames to USB serial at 9600 baud for testing.</li>
+  </ol>
+
+  <h3>2.4 Configuration switches</h3>
+  <table>
+    <thead><tr><th>Constant</th><th>File</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td><code>SIMULATE_LIVE_DATA</code></td><td><code>src/config.ts</code></td><td>Set to <code>false</code> to stop the fake feed once real Bluetooth is wired in</td></tr>
+      <tr><td><code>MAX_RANGE_CM</code></td><td><code>src/config.ts</code></td><td>Full scale of the gauge (200 cm)</td></tr>
+      <tr><td><code>HISTORY_LIMIT</code></td><td><code>src/config.ts</code></td><td>Maximum stored measurements (50)</td></tr>
+      <tr><td><code>LIVE_TICK_MS</code></td><td><code>src/config.ts</code></td><td>Simulated sample interval (2000 ms)</td></tr>
+      <tr><td><code>SENSOR_NOISE_CM</code></td><td><code>src/config.ts</code></td><td>Simulated jitter (±0.9 cm)</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============================ 3. ARCHITECTURE ============================ -->
+<section class="section" id="architecture">
+  <h2>3 · System architecture</h2>
+
+  <h3>3.1 Layering</h3>
+  <p>
+    The mobile app is organised into four layers. Dependencies point strictly
+    <b>downward</b>: screens compose components, components read state, state depends on
+    domain types, and the leaves (theme, utils, config, data) depend on nothing.
+  </p>
+  <pre><code>  ┌──────────────────────────────────────────────┐
+  │  src/app/**          Routing & screen layout  │   Expo Router
+  ├──────────────────────────────────────────────┤
+  │  src/components/**   Presentational, reusable │   AppHeader, DistanceGauge, …
+  ├──────────────────────────────────────────────┤
+  │  src/state/AppState  Single source of truth   │   React context + reducer-ish
+  ├──────────────────────────────────────────────┤
+  │  src/services/device Domain types + contract  │   Measurement, Settings, DeviceTransport
+  ├──────────────────────────────────────────────┤
+  │  theme · utils · config · data   (leaves)     │   No knowledge of the app
+  └──────────────────────────────────────────────┘</code></pre>
+
+  <p>
+    The important property is that <b>no screen imports a hardware API</b>. Screens consume
+    domain types and state; the transport is an implementation detail behind
+    <code>DeviceTransport</code>.
+  </p>
+
+  <h3>3.2 Data flow</h3>
+  <pre><code>  [ simulated feed / real transport ]
+              │  valueCm
+              ▼
+     AppStateProvider  ── owns: measurements[], settings, connection
+              │
+              │  useAppState()
+              ▼
+   ┌──────────┼──────────────┐
+   ▼          ▼              ▼
+ Distance   History       Settings
+ (reads     (reads list   (reads & writes
+  current)   + unit)       settings)</code></pre>
+
+  <p>
+    There is exactly <b>one</b> list of measurements. The live reading is simply
+    <code>measurements[0]</code>, so the hero value and the top history row can never drift
+    apart — there is no second "current value" field to keep in sync.
+  </p>
+
+  <h3>3.3 Key architectural decisions</h3>
+  <table>
+    <thead><tr><th>Decision</th><th>Rationale / consequence</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Single canonical unit (cm)</td>
+        <td>Every measurement is stored in centimetres; conversion happens only at render time.
+            Changing units never mutates history.</td>
+      </tr>
+      <tr>
+        <td>One measurements array</td>
+        <td>Live value = <code>measurements[0]</code>. Removes a whole class of sync bugs.</td>
+      </tr>
+      <tr>
+        <td>Screens depend on <code>DeviceTransport</code> types, not BLE</td>
+        <td>Swapping the mock for real Bluetooth is additive; no screen edits required.</td>
+      </tr>
+      <tr>
+        <td>Design tokens, not literals</td>
+        <td>All colours, spacing and radii live in one file and can be re-themed globally.</td>
+      </tr>
+      <tr>
+        <td>Simulated feed behind a flag</td>
+        <td>The mockup is demonstrable today; the real feed replaces one effect.</td>
+      </tr>
+      <tr>
+        <td>Dependency-light interactions</td>
+        <td>Option sheets use the platform <code>Modal</code> instead of a picker library.</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============================ 4. MOBILE ============================ -->
+<section class="section" id="mobile">
+  <h2>4 · Mobile application</h2>
+
+  <h3>4.1 Routing — Expo Router</h3>
+  <p>
+    Navigation is file-based. <code>src/app/</code> is the route root (Expo reports
+    <i>"Using src/app as the root directory for Expo Router"</i> at startup). Non-route code
+    lives outside <code>src/app/</code>, as Expo recommends.
+  </p>
+  <table>
+    <thead><tr><th>File</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td><code>src/app/_layout.tsx</code></td><td>Root layout: <code>SafeAreaProvider</code> → <code>AppStateProvider</code> → <code>StatusBar</code> → headerless <code>Stack</code></td></tr>
+      <tr><td><code>src/app/(tabs)/_layout.tsx</code></td><td>Bottom tab navigator with a themed bar and active-state pill</td></tr>
+      <tr><td><code>src/app/(tabs)/index.tsx</code></td><td><code>/</code> — Main / Distance</td></tr>
+      <tr><td><code>src/app/(tabs)/history.tsx</code></td><td><code>/history</code> — Measurement History</td></tr>
+      <tr><td><code>src/app/(tabs)/settings.tsx</code></td><td><code>/settings</code> — Settings</td></tr>
+    </tbody>
+  </table>
+
+  <h3>4.2 State — <code>AppState</code></h3>
+  <p>The provider owns three pieces of state and exposes one hook:</p>
+  <pre><code>useAppState() → {
+  connection      : 'disconnected' | 'connecting' | 'connected'
+  current         : Measurement | null      // = measurements[0]
+  measurements    : Measurement[]           // newest first
+  settings        : Settings
+  clearHistory()  : void
+  updateSettings(patch: Partial&lt;Settings&gt;) : void
+}</code></pre>
+  <p>
+    A <code>useEffect</code> interval drives the simulated feed. Each tick copies the head
+    entry with a jittered value and a fresh timestamp, and leaves the rest of the list
+    untouched:
+  </p>
+  <pre><code>const drift = (Math.random() - 0.5) * SENSOR_NOISE_CM * 2;
+const nextValue = clamp(round1(head.valueCm + drift), 0, MAX_RANGE_CM);
+return [{ ...head, valueCm: nextValue, timestamp: Date.now() }, ...prev.slice(1)];</code></pre>
+  <div class="callout">
+    <span class="tag">Seam</span>
+    Replacing the mock means deleting this effect and subscribing to
+    <code>transport.subscribe</code> instead — the rest of the app is unaffected.
+  </div>
+
+  <h3>4.3 Domain — <code>services/device.ts</code></h3>
+  <table>
+    <thead><tr><th>Type</th><th>Shape</th></tr></thead>
+    <tbody>
+      <tr><td><code>Measurement</code></td><td><code>{ id: string; valueCm: number; timestamp: number }</code> — value always centimetres, time in epoch ms</td></tr>
+      <tr><td><code>Settings</code></td><td><code>{ units: DistanceUnit; alertThresholdCm: number; alertSound: AlertSound }</code></td></tr>
+      <tr><td><code>DistanceUnit</code></td><td><code>'Centimeter' | 'Meter' | 'Inch' | 'Feet'</code></td></tr>
+      <tr><td><code>AlertSound</code></td><td><code>'Beep' | 'Chime' | 'Off'</code></td></tr>
+      <tr><td><code>ConnectionState</code></td><td><code>'disconnected' | 'connecting' | 'connected'</code></td></tr>
+      <tr><td><code>DeviceTransport</code></td><td><code>{ state; connect(); disconnect(); subscribe(listener) }</code></td></tr>
+    </tbody>
+  </table>
+  <p>
+    <code>DeviceTransport</code> is the single contract the UI is written against. A real
+    implementation wraps <code>react-native-ble-plx</code> (BLE) or a classic SPP bridge and
+    requires no changes to screens.
+  </p>
+
+  <h3>4.4 Component catalogue</h3>
+  <table>
+    <thead><tr><th>Component</th><th>Responsibility</th></tr></thead>
+    <tbody>
+      <tr><td><code>AppHeader</code></td><td>Leading section icon + title, trailing connection dot and "Connected"/"Offline" label</td></tr>
+      <tr><td><code>DistanceGauge</code></td><td>Half-circle SVG dial; track plus gradient progress arc, sweep = <code>value / max</code></td></tr>
+      <tr><td><code>StatusBadge</code></td><td>Pill: green "Within safe range" or amber "Below alert threshold"</td></tr>
+      <tr><td><code>HistoryRow</code></td><td>Gradient bar, value + unit, relative timestamp</td></tr>
+      <tr><td><code>SectionCard</code> / <code>Divider</code></td><td>Rounded surface container and hairline separator</td></tr>
+      <tr><td><code>SelectRow</code></td><td>Label + value with chevron; opens a dependency-free <code>Modal</code> option sheet</td></tr>
+      <tr><td><code>ThresholdRow</code></td><td>Numeric field, colour swatch and <code>cm</code> suffix</td></tr>
+      <tr><td><code>ActionButton</code></td><td>Pill button, <code>solid</code> or <code>outline</code> variant</td></tr>
+    </tbody>
+  </table>
+
+  <h3>4.5 Gauge geometry</h3>
+  <p>
+    The dial is a 180° arc drawn with <code>react-native-svg</code>. The arc path runs from the
+    left edge, over the top, to the right edge; the progress arc uses
+    <code>strokeDasharray</code> proportional to the arc length:
+  </p>
+  <pre><code>radius   = (size - strokeWidth) / 2
+arcLength = π · radius
+path     = M (cx − r) cy  A r r 0 0 1 (cx + r) cy
+dash     = [ arcLength · (value / max), arcLength ]</code></pre>
+
+  <h3>4.6 Utilities</h3>
+  <table>
+    <thead><tr><th>Module</th><th>Exports</th></tr></thead>
+    <tbody>
+      <tr><td><code>utils/units.ts</code></td><td><code>toDisplayDistance</code> (returns <code>{ value, text, suffix }</code>), <code>clamp</code>, <code>round1</code>, <code>UNIT_SUFFIX</code></td></tr>
+      <tr><td><code>utils/time.ts</code></td><td><code>formatClock</code> (<code>10:37:45</code>), <code>formatHistoryStamp</code> (<code>Today 21:38</code>)</td></tr>
+      <tr><td><code>data/mockMeasurements.ts</code></td><td>Eleven seed readings; the head (127.1 cm) is the one kept live</td></tr>
+    </tbody>
+  </table>
+
+  <h3>4.7 Tooling</h3>
+  <ul>
+    <li><b>TypeScript</b> — <code>strict: true</code>; path alias <code>@/* → src/*</code>.</li>
+    <li><b>ESLint</b> — <code>eslint-config-expo/flat</code>, run with <code>--max-warnings=0</code>.</li>
+    <li><b>expo-doctor</b> — validates the whole dependency graph (21 checks).</li>
+  </ul>
+</section>
+
+<!-- ============================ 5. DESIGN ============================ -->
+<section class="section" id="design">
+  <h2>5 · Design system</h2>
+  <p>
+    Every value is centralised in <code>src/theme/index.ts</code>. Screens describe themselves
+    with tokens rather than raw hex values, so the palette can be changed in one place.
+  </p>
+
+  <h3>5.1 Colour tokens</h3>
+  <table>
+    <thead><tr><th>Token</th><th>Value</th><th>Used for</th></tr></thead>
+    <tbody>
+      <tr><td><code>background</code></td><td><span class="swatch" style="background:#161B27"></span><code>#161B27</code></td><td>App canvas</td></tr>
+      <tr><td><code>surface</code></td><td><span class="swatch" style="background:#212838"></span><code>#212838</code></td><td>Cards, tab bar</td></tr>
+      <tr><td><code>surfaceAlt</code></td><td><span class="swatch" style="background:#2A3242"></span><code>#2A3242</code></td><td>Gauge track, option sheet</td></tr>
+      <tr><td><code>border</code></td><td><span class="swatch" style="background:#2E3648"></span><code>#2E3648</code></td><td>Hairlines, outlines</td></tr>
+      <tr><td><code>textPrimary</code></td><td><span class="swatch" style="background:#EAF0FA"></span><code>#EAF0FA</code></td><td>Values, titles</td></tr>
+      <tr><td><code>textSecondary</code></td><td><span class="swatch" style="background:#8B94AA"></span><code>#8B94AA</code></td><td>Field labels, units</td></tr>
+      <tr><td><code>textMuted</code></td><td><span class="swatch" style="background:#6A7390"></span><code>#6A7390</code></td><td>Timestamps, captions</td></tr>
+      <tr><td><code>accent</code></td><td><span class="swatch" style="background:#3AA0FF"></span><code>#3AA0FF</code></td><td>Primary button, gauge end stop</td></tr>
+      <tr><td><code>accentBright</code></td><td><span class="swatch" style="background:#22D3EE"></span><code>#22D3EE</code></td><td>Active tab, header icons</td></tr>
+      <tr><td><code>accentText</code></td><td><span class="swatch" style="background:#7CC7FF"></span><code>#7CC7FF</code></td><td>Hero distance reading</td></tr>
+      <tr><td><code>success</code></td><td><span class="swatch" style="background:#34D399"></span><code>#34D399</code></td><td>Connected dot, safe badge</td></tr>
+      <tr><td><code>warning</code></td><td><span class="swatch" style="background:#FBBF24"></span><code>#FBBF24</code></td><td>Out-of-range badge</td></tr>
+    </tbody>
+  </table>
+
+  <h3>5.2 Gradients, spacing, radius, type</h3>
+  <pre><code>gradients.accent      = ['#5BE3FF', '#2F8BFF']   // gauge arc
+gradients.historyBar  = ['#3FD8FF', '#1E3A5F']   // history row bar
+
+spacing = { xs:4, sm:8, md:12, lg:16, xl:20, xxl:28 }
+radius  = { sm:8, md:12, lg:18, xl:24, pill:999 }
+
+typography.value      = 66px / 700   // hero reading
+typography.headerTitle= 20px / 700
+typography.caption    = 12px / 600, letter-spacing 2
+typography.body       = 15px / 500</code></pre>
+
+  <h3>5.3 State colours</h3>
+  <table>
+    <thead><tr><th>Condition</th><th>Badge</th><th>Colour</th></tr></thead>
+    <tbody>
+      <tr><td>Reading ≥ alert threshold</td><td>Within safe range</td><td><span class="swatch" style="background:#34D399"></span>green</td></tr>
+      <tr><td>Reading &lt; alert threshold</td><td>Below alert threshold</td><td><span class="swatch" style="background:#FBBF24"></span>amber</td></tr>
+      <tr><td>Device linked</td><td>Connected dot</td><td><span class="swatch" style="background:#34D399"></span>green</td></tr>
+      <tr><td>Device offline</td><td>Offline dot</td><td><span class="swatch" style="background:#F87171"></span>red</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============================ 6. SCREENS ============================ -->
+<section class="section" id="screens">
+  <h2>6 · Screens in detail</h2>
+
+  <h3>6.1 Main / Distance <span class="pill done">done</span></h3>
+  <p>Route <code>/</code> · <code>src/app/(tabs)/index.tsx</code></p>
+  <ol>
+    <li><b>Header</b> — Bluetooth icon + "Distance"; green dot + "Connected".</li>
+    <li><b>Hero value</b> — the current reading at ~66 px in <code>accentText</code>, with the
+        unit suffix in <code>textSecondary</code>.</li>
+    <li><b>Caption</b> — <code>CURRENT DISTANCE</code>, letter-spaced, muted.</li>
+    <li><b>Gauge</b> — half-circle dial; sweep = <code>value / MAX_RANGE_CM</code>.</li>
+    <li><b>Status badge</b> — green or amber, driven by the alert threshold.</li>
+    <li><b>Footer</b> — <code>Last updated: HH:MM:SS</code>, refreshed by the feed.</li>
+  </ol>
+
+  <h3>6.2 Measurement History <span class="pill done">done</span></h3>
+  <p>Route <code>/history</code> · <code>src/app/(tabs)/history.tsx</code></p>
+  <ul>
+    <li>Newest-first <code>FlatList</code> of readings.</li>
+    <li>Each row: gradient bar, value + unit, right-aligned relative timestamp
+        (<code>Today 21:38</code>, <code>Yesterday 10:27</code>, or a date).</li>
+    <li>Hairline separators; empty state reads "No measurements yet. Connect the tape to start recording."</li>
+  </ul>
+
+  <h3>6.3 Settings <span class="pill done">done</span></h3>
+  <p>Route <code>/settings</code> · <code>src/app/(tabs)/settings.tsx</code></p>
+  <ul>
+    <li><b>Units</b> — option sheet: Centimeter / Meter / Inch / Feet. Re-renders the hero
+        value and every history row immediately.</li>
+    <li><b>Alert threshold</b> — numeric field (max 3 digits), colour swatch, <code>cm</code> suffix.</li>
+    <li><b>Alert sound</b> — option sheet: Beep / Chime / Off.</li>
+    <li><b>Clear History</b> — outlined pill, destructive confirmation dialog.</li>
+    <li><b>Save Settings</b> — solid accent pill.</li>
+  </ul>
+
+  <h3>6.4 Deviations from the mockup</h3>
+  <table>
+    <thead><tr><th>Mockup</th><th>Implementation</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>History/Settings headers both read "Distance"</td><td>"Measurement History" / "Settings"</td><td>The duplicate was a placeholder</td></tr>
+      <tr><td>Ambiguous filled dome gauge</td><td>Stroked half-circle arc with a value sweep</td><td>Reads clearly as a gauge and animates meaningfully</td></tr>
+      <tr><td>Palette given only as pixels</td><td>Centralised tokens</td><td>Consistency and theming</td></tr>
+      <tr><td>Static numbers</td><td>Simulated 2 s feed + seeded history</td><td>Demonstrates live behaviour pre-hardware</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============================ 7. FIRMWARE ============================ -->
+<section class="section" id="firmware">
+  <h2>7 · Firmware — Arduino UNO</h2>
+
+  <h3>7.1 Bill of materials</h3>
+  <table>
+    <thead><tr><th>Part</th><th>Purpose</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Arduino UNO (ATmega328P)</td><td>Controller</td><td>5 V logic</td></tr>
+      <tr><td>HC-SR04</td><td>Ultrasonic distance</td><td>2–400 cm range</td></tr>
+      <tr><td>HC-05 / HC-06</td><td>Bluetooth SPP link</td><td>9600 baud default</td></tr>
+      <tr><td>Piezo buzzer</td><td>Local alert</td><td>Optional, D8</td></tr>
+    </tbody>
+  </table>
+
+  <h3>7.2 Pin map</h3>
+  <table>
+    <thead><tr><th>Signal</th><th>UNO pin</th></tr></thead>
+    <tbody>
+      <tr><td>HC-SR04 <code>TRIG</code></td><td>D9</td></tr>
+      <tr><td>HC-SR04 <code>ECHO</code></td><td>D10</td></tr>
+      <tr><td>Buzzer <code>+</code></td><td>D8 (through 220 Ω)</td></tr>
+      <tr><td>HC-05 <code>TXD</code></td><td>D2 — SoftwareSerial RX</td></tr>
+      <tr><td>HC-05 <code>RXD</code></td><td>D3 — SoftwareSerial TX, via a voltage divider</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <span class="tag">Hardware caution</span>
+    The HC-05 <code>RXD</code> pin is a 3.3 V input. Feed it through a divider
+    (1 kΩ series + 2 kΩ to GND); driving it directly from a 5 V pin degrades the module over time.
+  </div>
+
+  <h3>7.3 Sampling algorithm</h3>
+  <pre><code>loop():
+  readCommands()                       // parse THRESH: / BEEP: / PING
+  if (millis() - lastSampleAt &lt; 200) return     // 5 Hz
+  raw = readDistanceCm()               // pulseIn, 30 ms timeout
+  if (raw &lt; 0) { emit "DIST:ERR"; return }      // nothing in range
+  smoothed += (raw - smoothed) * 0.35  // exponential moving average
+  emit "DIST:" + smoothed (1 dp)
+  applyAlert(smoothed)                 // buzzer below threshold
+
+readDistanceCm():
+  pulse TRIG high for 10 µs
+  duration = pulseIn(ECHO, HIGH, 30000 µs)
+  return duration · 0.0343 / 2         // cm, speed of sound</code></pre>
+  <p>
+    <b>Why an EMA?</b> Ultrasonic readings are noisy at the centimetre scale.
+    <code>SMOOTHING = 0.35</code> weights each new sample at 35 %, damping spikes while staying
+    responsive. It is the first value to tune on real hardware.
+  </p>
+
+  <h3>7.4 Sketch structure</h3>
+  <table>
+    <thead><tr><th>Function</th><th>Responsibility</th></tr></thead>
+    <tbody>
+      <tr><td><code>setup()</code></td><td>Pin modes, Serial + SoftwareSerial at 9600, boot banner</td></tr>
+      <tr><td><code>loop()</code></td><td>Superloop: commands, timed sampling, smoothing, emit, alert</td></tr>
+      <tr><td><code>readDistanceCm()</code></td><td>Trigger + timed echo; returns −1 on timeout</td></tr>
+      <tr><td><code>readCommands()</code></td><td>Reads one line from Bluetooth and dispatches</td></tr>
+      <tr><td><code>handleCommand()</code></td><td>Parses <code>THRESH:</code>, <code>BEEP:</code>, <code>PING</code></td></tr>
+      <tr><td><code>sendLine()</code></td><td>Writes a frame to both Bluetooth and USB serial</td></tr>
+      <tr><td><code>applyAlert()</code></td><td>Drives the buzzer when below threshold</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============================ 8. PROTOCOL ============================ -->
+<section class="section" id="protocol">
+  <h2>8 · Wire protocol</h2>
+  <p>
+    Newline-delimited ASCII, 9600 baud, 8N1. Human-readable so the link can be exercised with
+    any serial monitor.
+  </p>
+
+  <h3>8.1 Device → phone</h3>
+  <table>
+    <thead><tr><th>Frame</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>DIST:&lt;cm&gt;</code></td><td>Smoothed distance, e.g. <code>DIST:127.1</code></td></tr>
+      <tr><td><code>DIST:ERR</code></td><td>Echo timed out — nothing in range</td></tr>
+      <tr><td><code>INFO:MEASURING_TAPE_V1</code></td><td>Sent once on boot</td></tr>
+      <tr><td><code>PONG</code></td><td>Reply to <code>PING</code></td></tr>
+      <tr><td><code>OK:&lt;key&gt;=&lt;value&gt;</code></td><td>Command acknowledged</td></tr>
+      <tr><td><code>ERR:&lt;reason&gt;</code></td><td>Command rejected</td></tr>
+    </tbody>
+  </table>
+
+  <h3>8.2 Phone → device</h3>
+  <table>
+    <thead><tr><th>Frame</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>THRESH:&lt;cm&gt;</code></td><td>Set the alert threshold, e.g. <code>THRESH:30</code></td></tr>
+      <tr><td><code>BEEP:&lt;0|1&gt;</code></td><td>Enable / disable the buzzer</td></tr>
+      <tr><td><code>PING</code></td><td>Liveness check</td></tr>
+    </tbody>
+  </table>
+
+  <h3>8.3 Typical exchange</h3>
+  <pre><code>phone                   device
+  │                        │
+  │   (connect, SPP)       │
+  │───────────────────────►│
+  │                        │  INFO:MEASURING_TAPE_V1
+  │◄───────────────────────│
+  │  THRESH:30             │
+  │───────────────────────►│
+  │                        │  OK:THRESH=30.0
+  │◄───────────────────────│
+  │                        │  DIST:127.1      (every 200 ms)
+  │◄───────────────────────│
+  │  BEEP:0                │
+  │───────────────────────►│
+  │                        │  OK:BEEP=0
+  │◄───────────────────────│</code></pre>
+
+  <div class="callout">
+    <span class="tag">Not yet implemented</span>
+    The app does not speak this protocol today — the transport is a stub. The tables above are the
+    contract the real transport must implement.
+  </div>
+</section>
+
+<!-- ============================ 9. QUALITY ============================ -->
+<section class="section" id="quality">
+  <h2>9 · Quality &amp; verification</h2>
+
+  <h3>9.1 Quality gates</h3>
+  <table>
+    <thead><tr><th>Command (from <code>mobile/</code>)</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td><code>npx tsc --noEmit</code></td><td><span class="pill done">0 errors</span></td></tr>
+      <tr><td><code>npx eslint . --max-warnings=0</code></td><td><span class="pill done">0 problems</span></td></tr>
+      <tr><td><code>npx expo-doctor</code></td><td><span class="pill done">21 / 21 checks</span></td></tr>
+      <tr><td>Metro bundle — web</td><td><span class="pill done">bundled, 984 modules</span></td></tr>
+      <tr><td>Metro bundle — Android</td><td><span class="pill done">bundled, 1605 modules</span></td></tr>
+    </tbody>
+  </table>
+
+  <h3>9.2 What "verified" means here</h3>
+  <ul>
+    <li><b>Type &amp; lint clean</b> — no type errors, no lint warnings.</li>
+    <li><b>Dependency graph healthy</b> — <code>expo-doctor</code> validates versions and peer deps.</li>
+    <li><b>Bundles build</b> — both web and native module graphs compile end to end.</li>
+  </ul>
+
+  <div class="callout warn">
+    <span class="tag">Not yet verified</span>
+    No unit or component tests exist, and the firmware has not been flashed to physical hardware.
+    Screenshots were not captured in the build environment (no browser was attached to the session);
+    run <code>npm run web</code> to preview.
+  </div>
+
+  <h3>9.3 Notable environment fix</h3>
+  <p>
+    <code>react-dom</code> is pinned to <b>19.2.3</b> to match <code>react</code>.
+    <code>expo-router</code> otherwise resolves <code>react-dom@19.3.0</code>, which requires
+    <code>react@^19.3.0</code> and breaks npm's peer resolution.
+  </p>
+</section>
+
+<!-- ============================ 10. PROGRESS ============================ -->
+<section class="section" id="progress">
+  <h2>10 · Progress report — Milestone 1</h2>
+
+  <table>
+    <thead><tr><th>Field</th><th>Value</th></tr></thead>
+    <tbody>
+      <tr><td>Milestone</td><td>1 — Foundation &amp; mockup screens</td></tr>
+      <tr><td>Status</td><td><span class="pill done">Complete</span></td></tr>
+      <tr><td>Date</td><td>1 October 2026</td></tr>
+      <tr><td>Deliverables</td><td>11 of 11 complete</td></tr>
+    </tbody>
+  </table>
+
+  <h3>10.1 Summary</h3>
+  <p>
+    The project now has a runnable foundation. The mobile app reproduces all three screens from
+    <code>User Interface-1.pdf</code> — Distance, Measurement History and Settings — backed by a
+    shared, typed app-state layer and a simulated sensor feed. The UNO firmware sketch is written
+    and documented. Both halves are ready for the next milestone: replacing the mock transport
+    with a real Bluetooth link.
+  </p>
+
+  <h3>10.2 Deliverables</h3>
+  <table>
+    <thead><tr><th>#</th><th>Deliverable</th><th>Status</th><th>Where</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Git repository + docs</td><td><span class="pill done">done</span></td><td>repo root</td></tr>
+      <tr><td>2</td><td>Expo + TypeScript app with Expo Router</td><td><span class="pill done">done</span></td><td><code>mobile/</code></td></tr>
+      <tr><td>3</td><td>Design tokens from the mockup</td><td><span class="pill done">done</span></td><td><code>src/theme/index.ts</code></td></tr>
+      <tr><td>4</td><td>Main / Distance screen</td><td><span class="pill done">done</span></td><td><code>src/app/(tabs)/index.tsx</code></td></tr>
+      <tr><td>5</td><td>Measurement History screen</td><td><span class="pill done">done</span></td><td><code>src/app/(tabs)/history.tsx</code></td></tr>
+      <tr><td>6</td><td>Settings screen</td><td><span class="pill done">done</span></td><td><code>src/app/(tabs)/settings.tsx</code></td></tr>
+      <tr><td>7</td><td>Shared UI components</td><td><span class="pill done">done</span></td><td><code>src/components/</code></td></tr>
+      <tr><td>8</td><td>App state + simulated sensor feed</td><td><span class="pill done">done</span></td><td><code>src/state/AppState.tsx</code></td></tr>
+      <tr><td>9</td><td>Device transport contract (stub)</td><td><span class="pill done">done</span></td><td><code>src/services/device.ts</code></td></tr>
+      <tr><td>10</td><td>Arduino UNO firmware sketch</td><td><span class="pill done">done</span></td><td><code>firmware/measuring_tape/</code></td></tr>
+      <tr><td>11</td><td>UI spec + firmware wiring docs</td><td><span class="pill done">done</span></td><td><code>docs/</code>, <code>firmware/README.md</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>10.3 What works today</h3>
+  <ul>
+    <li><b>Navigation</b> — three tabs via Expo Router, themed bar with active-state highlight.</li>
+    <li><b>Live reading</b> — hero value, gauge sweep, badge and clock all track a simulated feed.</li>
+    <li><b>Units</b> — switching units immediately re-renders the hero value and every history row.</li>
+    <li><b>Alert rule</b> — dropping below the threshold flips the badge from green to amber.</li>
+    <li><b>History</b> — scrollable, newest-first, relative timestamps, clear action.</li>
+    <li><b>Settings</b> — option sheets, inline numeric threshold, save/clear actions.</li>
+  </ul>
+
+  <h3>10.4 Design decisions</h3>
+  <ol>
+    <li><b>Expo Router + <code>src/app/</code></b> — matches Expo guidance and keeps non-route code out of routes.</li>
+    <li><b>Single canonical unit (cm)</b> — conversion at render only; history is immutable under unit changes.</li>
+    <li><b>Design tokens over literals</b> — one place to adjust the palette.</li>
+    <li><b>Dependency-light interactions</b> — platform <code>Modal</code> instead of a picker library.</li>
+    <li><b>Transport contract first</b> — screens depend on <code>DeviceTransport</code> types, not BLE.</li>
+  </ol>
+
+  <h3>10.5 Known limitations</h3>
+  <ul>
+    <li>Sensor feed is <b>simulated</b>; no Bluetooth implemented yet.</li>
+    <li>Firmware is <b>untested on hardware</b>.</li>
+    <li><code>Alert</code>-based confirmations (<code>Save</code>, <code>Clear</code>) are no-ops on web.</li>
+    <li>No persistence, tests, or reconnect/error states.</li>
+    <li><code>react-dom</code> pinned to 19.2.3 (see §9.3).</li>
+  </ul>
+
+  <h3>10.6 Next steps</h3>
+  <ol>
+    <li><b>Bluetooth transport</b> — implement <code>DeviceTransport</code> (e.g. <code>react-native-ble-plx</code>) and parse <code>DIST:</code> frames.</li>
+    <li><b>Persist history</b> — AsyncStorage or SQLite.</li>
+    <li><b>Persist settings</b> — store preferences and push <code>THRESH:</code> on connect.</li>
+    <li><b>Bench-test the firmware</b> — flash, verify accuracy, calibrate <code>SMOOTHING</code>.</li>
+    <li><b>Device management UX</b> — pairing flow, reconnect handling, "searching" state.</li>
+    <li><b>Polish</b> — empty/loading states, alert playback, unit-aware gauge labels, icons/splash.</li>
+  </ol>
+</section>
+
+<!-- ============================ 11. ROADMAP ============================ -->
+<section class="section" id="roadmap">
+  <h2>11 · Roadmap</h2>
+  <table>
+    <thead><tr><th>Milestone</th><th>Theme</th><th>Key work</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>1</td><td>Foundation &amp; mockup screens</td>
+        <td>Repo, Expo app, three screens, tokens, firmware sketch</td>
+        <td><span class="pill done">done</span></td>
+      </tr>
+      <tr>
+        <td>2</td><td>Real connectivity</td>
+        <td>BLE/SPP transport, frame parsing, connection state, pairing UX</td>
+        <td><span class="pill todo">planned</span></td>
+      </tr>
+      <tr>
+        <td>3</td><td>Persistence &amp; sync</td>
+        <td>Stored history, settings persistence, threshold push on connect</td>
+        <td><span class="pill todo">planned</span></td>
+      </tr>
+      <tr>
+        <td>4</td><td>Hardware bring-up &amp; polish</td>
+        <td>Flash &amp; calibrate, alerts, icons/splash, store builds</td>
+        <td><span class="pill todo">planned</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>11.1 Highest-risk items</h3>
+  <ul>
+    <li><b>Ultrasonic accuracy</b> — temperature/humidity sensitivity and surface angle; may need calibration or a median filter.</li>
+    <li><b>Bluetooth module choice</b> — classic SPP (HC-05) vs BLE changes the phone-side library; a decision to lock before Milestone 2.</li>
+    <li><b>iOS + BLE</b> — classic SPP is not available on iOS; a BLE module may be required for cross-platform support.</li>
+  </ul>
+</section>
+
+<!-- ============================ 12. APPENDIX ============================ -->
+<section class="section" id="appendix">
+  <h2>12 · Appendix</h2>
+
+  <h3>12.1 File index</h3>
+  <table>
+    <thead><tr><th>Path</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>mobile/src/app/_layout.tsx</code></td><td>Providers + headerless stack</td></tr>
+      <tr><td><code>mobile/src/app/(tabs)/_layout.tsx</code></td><td>Bottom tab navigator</td></tr>
+      <tr><td><code>mobile/src/app/(tabs)/index.tsx</code></td><td>Main / Distance screen</td></tr>
+      <tr><td><code>mobile/src/app/(tabs)/history.tsx</code></td><td>Measurement History screen</td></tr>
+      <tr><td><code>mobile/src/app/(tabs)/settings.tsx</code></td><td>Settings screen</td></tr>
+      <tr><td><code>mobile/src/state/AppState.tsx</code></td><td>App state provider + simulated feed</td></tr>
+      <tr><td><code>mobile/src/services/device.ts</code></td><td>Domain types + DeviceTransport contract</td></tr>
+      <tr><td><code>mobile/src/components/*.tsx</code></td><td>Eight reusable components</td></tr>
+      <tr><td><code>mobile/src/theme/index.ts</code></td><td>Design tokens</td></tr>
+      <tr><td><code>mobile/src/utils/units.ts</code></td><td>Unit conversion + numeric helpers</td></tr>
+      <tr><td><code>mobile/src/utils/time.ts</code></td><td>Clock + relative timestamp formatting</td></tr>
+      <tr><td><code>mobile/src/config.ts</code></td><td>Range, history limit, simulation switches</td></tr>
+      <tr><td><code>mobile/src/data/mockMeasurements.ts</code></td><td>Seed measurements</td></tr>
+      <tr><td><code>firmware/measuring_tape/measuring_tape.ino</code></td><td>Arduino UNO sketch</td></tr>
+    </tbody>
+  </table>
+
+  <h3>12.2 Glossary</h3>
+  <table>
+    <thead><tr><th>Term</th><th>Definition</th></tr></thead>
+    <tbody>
+      <tr><td>SPP</td><td>Serial Port Profile — classic Bluetooth serial link used by HC-05/HC-06</td></tr>
+      <tr><td>BLE</td><td>Bluetooth Low Energy — the alternative radio stack modern phones support</td></tr>
+      <tr><td>EMA</td><td>Exponential Moving Average — smoothing filter applied to sensor readings</td></tr>
+      <tr><td>Expo Router</td><td>File-based routing layer for React Native, built on React Navigation</td></tr>
+      <tr><td>DeviceTransport</td><td>The app-side contract abstracting the physical link</td></tr>
+      <tr><td>Canonical unit</td><td>Centimetres — the single unit in which all measurements are stored</td></tr>
+    </tbody>
+  </table>
+
+  <h3>12.3 Repository status</h3>
+  <pre><code>Branch   : main
+Commit   : "Add project foundation: Expo mockup screens + UNO firmware"
+Worktree : clean
+Gates    : typecheck ✅   lint ✅   expo-doctor 21/21 ✅</code></pre>
+
+  <footer class="pgfoot">
+    Arduino Measuring Tape — Technical Documentation · v0.1.0 · Milestone 1 · 1 October 2026
+  </footer>
+</section>
+
+</body>
+</html>

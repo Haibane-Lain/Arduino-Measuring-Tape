@@ -20,7 +20,10 @@ against the `User Interface-1.pdf` designs, plus the first-pass firmware.
 │       └── theme/              # design tokens
 ├── firmware/                   # Arduino UNO sketch + wiring/protocol docs
 │   └── measuring_tape/measuring_tape.ino
-├── docs/UI-SPEC.md             # screen-by-screen design notes
+├── docs/
+│   ├── documentation.html      # source of documentation.pdf
+│   └── UI-SPEC.md              # screen-by-screen design notes
+├── documentation.pdf           # full technical documentation (23 pages)
 ├── PROGRESS.md                 # milestone status report
 └── User Interface-1.pdf        # source design mockup
 ```
@@ -52,6 +55,19 @@ to `false` once the real Bluetooth transport is wired in.
 Open `firmware/measuring_tape/measuring_tape.ino` in the Arduino IDE and upload
 to an UNO. See [`firmware/README.md`](firmware/README.md) for the pinout and the
 line-based serial protocol.
+
+## Documentation
+
+[`documentation.pdf`](documentation.pdf) is the full technical document: system
+architecture, mobile app internals, design system, firmware, wire protocol,
+quality gates and the Milestone 1 progress report. Its source is
+[`docs/documentation.html`](docs/documentation.html) — regenerate with:
+
+```powershell
+& "$env:ProgramFiles\Google\Chrome\Application\chrome.exe" --headless=new `
+  --no-pdf-header-footer --print-to-pdf="documentation.pdf" `
+  "file:///C:/Coding/Arduino%20Measuring%20Tape/docs/documentation.html"
+```
 
 ## Status
 

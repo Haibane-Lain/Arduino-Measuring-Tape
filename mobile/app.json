@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "Measuring Tape",
+    "slug": "measuring-tape",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "measuringtape",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#161B27",
+    "primaryColor": "#3AA0FF",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.measuringtape.app"
+    },
+    "android": {
+      "package": "com.measuringtape.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#161B27",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-status-bar",
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

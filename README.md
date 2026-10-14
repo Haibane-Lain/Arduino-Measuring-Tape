@@ -21,6 +21,8 @@ against the `User Interface-1.pdf` designs, plus the first-pass firmware.
 ├── firmware/                   # Arduino UNO sketch + wiring/protocol docs
 │   └── measuring_tape/measuring_tape.ino
 ├── docs/
+│   ├── REQUIREMENTS.md         # hardware / software / enclosure requirements
+│   ├── PLAN.md                 # delivery plan (Milestones 2-6)
 │   ├── documentation.html      # source of documentation.pdf
 │   └── UI-SPEC.md              # screen-by-screen design notes
 ├── documentation.pdf           # full technical documentation (23 pages)
@@ -57,6 +59,9 @@ to an UNO. See [`firmware/README.md`](firmware/README.md) for the pinout and the
 line-based serial protocol.
 
 ## Documentation
+
+The baseline requirements and the delivery plan live in
+[`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md) and [`docs/PLAN.md`](docs/PLAN.md).
 
 [`documentation.pdf`](documentation.pdf) is the full technical document: system
 architecture, mobile app internals, design system, firmware, wire protocol,

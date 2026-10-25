@@ -1,22 +1,30 @@
 /**
- * Runtime configuration for the mockup build.
+ * Runtime configuration shared by the app and the BLE transport.
  *
- * Once the Arduino UNO link is wired up (see `src/services/device.ts`),
- * `SIMULATE_LIVE_DATA` can be switched off and the app will render only the
- * measurements it receives over the device transport.
+ * The canonical unit everywhere is centimetres. Values are converted only for
+ * display, so changing units never mutates history.
  */
 
-/** Full scale of the tape, used by the gauge and range checks. */
-export const MAX_RANGE_CM = 200;
+/** Full scale of the gauge, in centimetres (the sensor is usable to ~3 m). */
+export const MAX_RANGE_CM = 300;
 
-/** Upper bound on how many measurements are kept in memory / shown. */
+/** Upper bound on how many measurements are kept in history. */
 export const HISTORY_LIMIT = 50;
 
-/** Flip to `false` to stop the fake sensor feed. */
-export const SIMULATE_LIVE_DATA = true;
+/** BLE identity of the ESP32 node. */
+export const BLE_DEVICE_NAME = 'DistanceMeter';
+export const BLE_SERVICE_UUID = '4fafc201-1fb5-459e-8fcc-c5c9c331914b';
+export const BLE_MEASUREMENT_CHAR_UUID = 'beb5483e-36e1-4688-b7f5-ea07361b26a8';
+export const BLE_COMMAND_CHAR_UUID = 'beb5483e-36e1-4688-b7f5-ea07361b26a9';
 
-/** How often the simulated sensor produces a reading (ms). */
-export const LIVE_TICK_MS = 2000;
+/** Stop scanning after this long. */
+export const SCAN_TIMEOUT_MS = 12_000;
 
-/** +/- jitter applied to the simulated reading, in cm. */
-export const SENSOR_NOISE_CM = 0.9;
+/** Per-attempt BLE connection timeout. */
+export const CONNECT_TIMEOUT_MS = 10_000;
+
+/** Backoff used for automatic reconnection after a drop. */
+export const RECONNECT_DELAYS_MS = [2_000, 4_000, 8_000, 15_000, 30_000] as const;
+
+/** How long to wait before retrying a cold auto-connect after launch. */
+export const AUTO_CONNECT_DELAY_MS = 700;

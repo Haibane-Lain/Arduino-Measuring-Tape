@@ -1,30 +1,52 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
+import type { IconName } from '@/components/iconName';
 import { colors, radius, spacing, typography } from '@/theme';
 
+export type StatusTone = 'success' | 'warning' | 'neutral' | 'danger';
+
 type Props = {
-  safe: boolean;
-  safeLabel?: string;
-  warningLabel?: string;
+  tone: StatusTone;
+  label: string;
+  icon?: IconName;
 };
 
-/** Pill badge under the gauge: green when the reading is in range, amber when not. */
-export function StatusBadge({
-  safe,
-  safeLabel = 'Within safe range',
-  warningLabel = 'Below alert threshold',
-}: Props) {
-  const tint = safe ? colors.success : colors.warning;
+const TONES: Record<StatusTone, { color: string; background: string; defaultIcon: IconName }> = {
+  success: {
+    color: colors.success,
+    background: colors.successSoft,
+    defaultIcon: 'checkbox-marked-circle',
+  },
+  warning: {
+    color: colors.warning,
+    background: colors.warningSoft,
+    defaultIcon: 'alert-circle',
+  },
+  neutral: {
+    color: colors.textSecondary,
+    background: colors.surfaceAlt,
+    defaultIcon: 'progress-clock',
+  },
+  danger: {
+    color: colors.danger,
+    background: colors.dangerSoft,
+    defaultIcon: 'bluetooth-off',
+  },
+};
+
+/** Pill badge under the gauge: status of the current reading/link. */
+export function StatusBadge({ tone, label, icon }: Props) {
+  const meta = TONES[tone];
 
   return (
-    <View style={[styles.badge, { backgroundColor: safe ? colors.successSoft : colors.warningSoft }]}>
+    <View style={[styles.badge, { backgroundColor: meta.background }]}>
       <MaterialCommunityIcons
-        name={safe ? 'checkbox-marked-circle' : 'alert-circle'}
+        name={icon ?? meta.defaultIcon}
         size={14}
-        color={tint}
+        color={meta.color}
       />
-      <Text style={[styles.label, { color: tint }]}>{safe ? safeLabel : warningLabel}</Text>
+      <Text style={[styles.label, { color: meta.color }]}>{label}</Text>
     </View>
   );
 }

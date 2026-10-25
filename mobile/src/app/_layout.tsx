@@ -2,12 +2,13 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { DeviceModal } from '@/components/DeviceModal';
 import { AppStateProvider } from '@/state/AppState';
 import { colors } from '@/theme';
 
 /**
- * Root layout: wires the safe-area provider, the (mock) app state and the
- * status bar around a headerless stack that hosts the tab navigator.
+ * Root layout: safe-area provider, BLE/persisted app state, status bar and the
+ * global device-connection sheet around a headerless stack.
  */
 export default function RootLayout() {
   return (
@@ -20,6 +21,7 @@ export default function RootLayout() {
             contentStyle: { backgroundColor: colors.background },
           }}
         />
+        <DeviceModal />
       </AppStateProvider>
     </SafeAreaProvider>
   );

@@ -37,6 +37,7 @@ export const colors = {
   warning: '#FBBF24',
   warningSoft: 'rgba(251, 191, 36, 0.14)',
   danger: '#F87171',
+  dangerSoft: 'rgba(248, 113, 113, 0.14)',
 } as const;
 
 /** Gradient stops expressed as `[start, end]` pairs. */

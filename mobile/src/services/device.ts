@@ -1,25 +1,25 @@
 /**
- * Device layer.
+ * Device layer contracts.
  *
- * Today the app runs against `mockTransport`, which fabricates readings so the
- * UI can be built and reviewed. The firmware sketch in `../firmware` streams
- * newline-delimited frames over a Bluetooth SPP link, e.g.:
- *
- *     DIST:127.1
- *     DIST:127.4
- *
- * Wiring the real thing up (later milestone) means writing a transport that
- * matches `DeviceTransport` and dropping it into the provider - no screen code
- * should need to change.
+ * The UI depends only on these types and on `DeviceTransport`, never on a
+ * concrete BLE library. `bleTransport.native.ts` is the real implementation;
+ * `bleTransport.web.ts` supplies a friendly unsupported state in the browser.
  */
 
-export type ConnectionState = 'disconnected' | 'connecting' | 'connected';
+export type ConnectionState =
+  | 'unavailable'
+  | 'bluetooth-off'
+  | 'disconnected'
+  | 'scanning'
+  | 'connecting'
+  | 'reconnecting'
+  | 'connected';
 
 export type Measurement = {
   id: string;
   /** Distance in centimetres - the single canonical unit in the app. */
   valueCm: number;
-  /** Epoch milliseconds when the reading was captured. */
+  /** Epoch milliseconds when the reading reached the phone. */
   timestamp: number;
 };
 
@@ -43,14 +43,48 @@ export const DEFAULT_SETTINGS: Settings = {
 export const DISTANCE_UNITS: DistanceUnit[] = ['Centimeter', 'Meter', 'Inch', 'Feet'];
 export const ALERT_SOUNDS: AlertSound[] = ['Beep', 'Chime', 'Off'];
 
+/** A peripheral discovered during a scan. */
+export type DeviceInfo = {
+  id: string;
+  name: string | null;
+  rssi: number | null;
+};
+
+/** A device we should try to reconnect to on the next launch. */
+export type LastDevice = DeviceInfo & {
+  connectedAt: number;
+};
+
+export type ReadingState = 'idle' | 'ok' | 'no-echo';
+
+export type TransportEvent =
+  | { type: 'connection'; state: ConnectionState; device?: DeviceInfo; error?: string }
+  | { type: 'device'; device: DeviceInfo }
+  | { type: 'scan-complete' }
+  | { type: 'reading'; valueCm: number }
+  | { type: 'no-echo' }
+  | { type: 'error'; message: string };
+
 /**
- * Minimal contract the UI depends on. A real implementation will wrap
- * `react-native-ble-plx` (BLE) or a classic SPP bridge.
+ * Minimal contract the UI depends on. Implementations may scan, connect,
+ * monitor and auto-reconnect internally; the app only sees these events.
  */
 export interface DeviceTransport {
-  readonly state: ConnectionState;
-  connect(): Promise<void>;
+  subscribe(listener: (event: TransportEvent) => void): () => void;
+  startScan(): Promise<void>;
+  stopScan(): Promise<void>;
+  connect(device: DeviceInfo): Promise<void>;
   disconnect(): Promise<void>;
-  /** Subscribe to incoming distances. Returns an unsubscribe function. */
-  subscribe(listener: (valueCm: number) => void): () => void;
+  send(command: string): Promise<void>;
+  destroy(): void;
+}
+
+/** True when the UI should present the node as online. */
+export function isConnected(state: ConnectionState): boolean {
+  return state === 'connected';
+}
+
+/** True while a connection attempt is in flight. */
+export function isBusy(state: ConnectionState): boolean {
+  return state === 'connecting' || state === 'reconnecting' || state === 'scanning';
 }

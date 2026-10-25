@@ -155,15 +155,16 @@
 <section class="cover">
   <div class="eyebrow">Technical Documentation</div>
   <h1>Arduino Measuring&nbsp;Tape</h1>
-  <div class="subtitle">Bluetooth tape measure — React&nbsp;Native app &amp; Arduino&nbsp;UNO firmware</div>
+  <div class="subtitle">ESP32 + BLE distance meter — Expo / React&nbsp;Native Android app</div>
   <div class="rule"></div>
   <div class="meta">
     <p>
-      <b>Version:</b> 0.1.0 &nbsp;·&nbsp; <b>Milestone:</b> 1 — Foundation &amp; mockup screens<br>
-      <b>Date:</b> 1 October 2026 &nbsp;·&nbsp; <b>Repository:</b> Arduino Measuring Tape
+      <b>Version:</b> 1.0.0 &nbsp;·&nbsp; <b>Milestone:</b> Final application<br>
+      <b>Date:</b> 25 October 2026 &nbsp;·&nbsp; <b>Repository:</b> Arduino Measuring Tape
     </p>
-    <p>This document covers the architecture, design system, firmware, wire protocol,
-    setup instructions and the Milestone&nbsp;1 progress report.</p>
+    <p>This edition documents the final ESP32/BLE application, the Android transport,
+    persistence, alerting and quality gates. The original Milestone&nbsp;1
+    UNO/SPP material is retained later as historical context.</p>
   </div>
 </section>
 
@@ -172,33 +173,152 @@
   <h2>Contents</h2>
   <div class="toc">
     <ol>
-      <li><a href="#overview">Project overview</a></li>
-      <li><a href="#getting-started">Getting started</a></li>
+      <li><a href="#final">Final application (v1.0)</a></li>
+      <li><a href="#overview">Historical project overview</a></li>
+      <li><a href="#getting-started">Historical getting started</a></li>
       <li><a href="#architecture">System architecture</a></li>
       <li><a href="#mobile">Mobile application</a></li>
       <li><a href="#design">Design system</a></li>
       <li><a href="#screens">Screens in detail</a></li>
-      <li><a href="#firmware">Firmware — Arduino UNO</a></li>
-      <li><a href="#protocol">Wire protocol</a></li>
-      <li><a href="#quality">Quality &amp; verification</a></li>
-      <li><a href="#progress">Progress report — Milestone 1</a></li>
+      <li><a href="#firmware">Firmware — Arduino UNO (historical)</a></li>
+      <li><a href="#protocol">Wire protocol — SPP (historical)</a></li>
+      <li><a href="#quality">Quality &amp; verification (historical)</a></li>
+      <li><a href="#progress">Progress report — Milestone 1 (historical)</a></li>
       <li><a href="#roadmap">Roadmap</a></li>
       <li><a href="#appendix">Appendix — tokens, glossary, file index</a></li>
     </ol>
   </div>
 
   <div class="callout">
-    <span class="tag">Scope of this milestone</span>
-    A runnable mobile mockup that reproduces the three screens from
-    <code>User Interface-1.pdf</code>, backed by a typed state layer and a simulated
-    sensor feed, plus a first-pass UNO firmware sketch. Bluetooth is <b>not</b> wired
-    up yet — see <a href="#progress">§10</a>.
+    <span class="tag">Final application</span>
+    The target is now an ESP32 node with an HC-SR04 sensor, SSD1306 OLED and a
+    button. Each press sends one BLE reading to the Expo/React Native app. The
+    app connects by scan/pick, persists settings and history, reconnects
+    automatically and plays a phone-side alert. See <a href="#final">§0</a>.
+  </div>
+</section>
+
+<!-- ============================ 0. FINAL ============================ -->
+<section class="section" id="final">
+  <h2>0 · Final application (v1.0)</h2>
+
+  <p class="lede">
+    This section supersedes the Milestone 1 mockup description. The final system
+    is an ESP32 BLE sensor node plus an Android development build of the Expo app.
+  </p>
+
+  <h3>0.1 What changed from Milestone 1</h3>
+  <table>
+    <thead><tr><th>Area</th><th>Milestone 1</th><th>Final v1.0</th></tr></thead>
+    <tbody>
+      <tr><td>Controller</td><td>Arduino UNO</td><td>ESP32 Dev Module</td></tr>
+      <tr><td>Radio</td><td>HC-05 classic SPP</td><td>BLE GATT</td></tr>
+      <tr><td>Measurement</td><td>Continuous 5 Hz stream</td><td>One filtered reading per button press</td></tr>
+      <tr><td>Local UI</td><td>None</td><td>SSD1306 OLED with 10 s sleep</td></tr>
+      <tr><td>Alert</td><td>Buzzer on node</td><td>Phone-side Beep/Chime/Off</td></tr>
+      <tr><td>App data</td><td>Simulated feed, in-memory</td><td>Real BLE readings, AsyncStorage</td></tr>
+      <tr><td>Connection</td><td>None</td><td>Scan/pick, last-device restore, backoff reconnect</td></tr>
+    </tbody>
+  </table>
+
+  <h3>0.2 Architecture</h3>
+  <pre><code>┌─────────────────────────────────────┐        ┌─────────────────────────────────────┐
+│ ANDROID APP · mobile/               │        │ SENSOR NODE · firmware/             │
+│                                     │  BLE   │                                     │
+│  Expo Router screens                │  GATT  │  HC-SR04 ──► median filter ──► OLED  │
+│    Main / History / Settings        │◄──────►│      │                              │
+│         │                           │ DIST:  │      └──► BLE notify                 │
+│  AppState (transport events)        │ 127.1  │                                     │
+│    ├─ history + settings            │        │  KY-004 button ──► one measurement   │
+│    ├─ AsyncStorage                  │        │                                     │
+│    └─ expo-audio alert              │        │  ESP32 · BLE peripheral             │
+│         │                           │        │  Service 4fafc201-…                 │
+│  NativeBleTransport (ble-plx fork)  │        │  Measurement char …26a8 (notify)    │
+│    scan → connect → monitor         │        │  Command char …26a9 (write)         │
+└─────────────────────────────────────┘        └─────────────────────────────────────┘</code></pre>
+
+  <h3>0.3 App internals</h3>
+  <ul>
+    <li><b>Transport</b> — <code>src/services/bleTransport.ts</code> wraps
+        <code>@sfourdrinier/react-native-ble-plx</code> 3.9.x, the maintained
+        RN 0.86 / Expo SDK 57 fork. It scans client-side, connects with a
+        timeout, discovers the service, reads the initial value, subscribes to
+        notifications and reconnects with backoff.</li>
+    <li><b>Protocol</b> — <code>src/services/protocol.ts</code> decodes base64
+        BLE values and buffers partial lines. Unknown frames are ignored;
+        <code>DIST:ERR</code> becomes a no-echo state and never a history row.</li>
+    <li><b>App state</b> — <code>src/state/AppState.tsx</code> owns the latest
+        reading, history, settings, device list, connection state and the global
+        device sheet. Every successful reading is capped at the 50-entry limit.</li>
+    <li><b>Persistence</b> — <code>src/storage/</code> validates settings,
+        history and the last device, then stores them under versioned
+        AsyncStorage keys.</li>
+    <li><b>Alerts</b> — <code>src/utils/alerts.ts</code> decides when a reading
+        is below the threshold; <code>expo-audio</code> plays local WAV beep or
+        chime assets.</li>
+    <li><b>Browser fallback</b> — <code>bleTransport.web.ts</code> keeps the UI
+        usable but explains that BLE requires an Android development build.</li>
+  </ul>
+
+  <h3>0.4 Firmware internals</h3>
+  <ul>
+    <li>Five samples per press; invalid echoes are discarded and the median is
+        used. A configurable datum offset is added after filtering.</li>
+    <li>The OLED shows idle, measuring, result, no-echo and BLE state. It sleeps
+        after 10 s and wakes on the next press. A missing OLED does not block BLE.</li>
+    <li>The node advertises as <code>DistanceMeter</code>, restarts advertising
+        after a disconnect and answers <code>PING</code>.</li>
+    <li>Every frame is mirrored to USB serial at 115200 for bench testing.</li>
+    <li>The HC-SR04 ECHO line must pass through a 1 kΩ/2 kΩ divider. This is a
+        hard hardware requirement: the ESP32 GPIOs are 3.3 V only.</li>
+  </ul>
+
+  <h3>0.5 Final BLE protocol</h3>
+  <table>
+    <thead><tr><th>Direction</th><th>Frame</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>Node → app</td><td><code>DIST:&lt;cm&gt;</code></td><td>One filtered reading</td></tr>
+      <tr><td>Node → app</td><td><code>DIST:ERR</code></td><td>No valid echo</td></tr>
+      <tr><td>Node → app</td><td><code>INFO:MEASURING_TAPE_V2</code></td><td>Identity / initial read</td></tr>
+      <tr><td>Node → app</td><td><code>PONG</code></td><td>Reply to PING</td></tr>
+      <tr><td>Node → app</td><td><code>OK:CAL=&lt;cm&gt;</code></td><td>Calibration accepted</td></tr>
+      <tr><td>Node → app</td><td><code>ERR:&lt;reason&gt;</code></td><td>Command rejected</td></tr>
+      <tr><td>App → node</td><td><code>PING</code></td><td>Liveness check</td></tr>
+      <tr><td>App → node</td><td><code>CAL:&lt;cm&gt;</code></td><td>Datum offset, −100…+100</td></tr>
+    </tbody>
+  </table>
+  <p>Full GATT UUIDs and framing rules: <code>docs/PROTOCOL.md</code>.</p>
+
+  <h3>0.6 Build and verification</h3>
+  <ul>
+    <li>App: <code>npx expo run:android</code> or an EAS development build.
+        BLE cannot run in Expo Go or a browser.</li>
+    <li>Firmware: Arduino IDE, board <b>ESP32 Dev Module</b>, libraries
+        Adafruit SSD1306 / GFX / BusIO.</li>
+    <li>Gates: <code>tsc</code>, ESLint, Expo Doctor, Jest (26 tests), web
+        export and Android prebuild all pass.</li>
+    <li>Physical acceptance still requires the ESP32 and an Android phone:
+        serial frames, nRF Connect GATT check, app scan/connect, button reading,
+        persistence, reconnect, alert sound and accuracy against a steel tape.</li>
+  </ul>
+
+  <div class="callout">
+    <span class="tag">Historical material follows</span>
+    Sections 1–12 below are retained from the Milestone 1 documentation and
+    describe the earlier UNO/HC-05 mockup. Use §0 and the Markdown docs for the
+    current system.
   </div>
 </section>
 
 <!-- ============================ 1. OVERVIEW ============================ -->
 <section class="section" id="overview">
-  <h2>1 · Project overview</h2>
+  <h2>1 · Historical project overview</h2>
+
+  <div class="callout">
+    <span class="tag">Historical</span>
+    This section describes the original Milestone 1 UNO/HC-05 mockup. It is kept
+    for project history; the final system is described in §0.
+  </div>
 
   <p class="lede">
     The Arduino Measuring Tape is a two-part system: a handheld sensor node that
@@ -605,7 +725,13 @@ typography.body       = 15px / 500</code></pre>
 
 <!-- ============================ 7. FIRMWARE ============================ -->
 <section class="section" id="firmware">
-  <h2>7 · Firmware — Arduino UNO</h2>
+  <h2>7 · Firmware — Arduino UNO (historical)</h2>
+
+  <div class="callout">
+    <span class="tag">Historical</span>
+    Superseded by the ESP32 firmware in §0 and
+    <code>firmware/esp32_measuring_tape/</code>.
+  </div>
 
   <h3>7.1 Bill of materials</h3>
   <table>
@@ -673,7 +799,12 @@ readDistanceCm():
 
 <!-- ============================ 8. PROTOCOL ============================ -->
 <section class="section" id="protocol">
-  <h2>8 · Wire protocol</h2>
+  <h2>8 · Wire protocol — SPP (historical)</h2>
+
+  <div class="callout">
+    <span class="tag">Historical</span>
+    The final BLE protocol is in §0.5 and <code>docs/PROTOCOL.md</code>.
+  </div>
   <p>
     Newline-delimited ASCII, 9600 baud, 8N1. Human-readable so the link can be exercised with
     any serial monitor.

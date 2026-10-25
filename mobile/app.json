@@ -2,7 +2,7 @@
   "expo": {
     "name": "Measuring Tape",
     "slug": "measuring-tape",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "measuringtape",
@@ -11,7 +11,10 @@
     "primaryColor": "#3AA0FF",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.measuringtape.app"
+      "bundleIdentifier": "com.measuringtape.app",
+      "infoPlist": {
+        "NSBluetoothAlwaysUsageDescription": "Measuring Tape uses Bluetooth to receive distance readings from your sensor."
+      }
     },
     "android": {
       "package": "com.measuringtape.app",
@@ -30,7 +33,23 @@
     "plugins": [
       "expo-router",
       "expo-status-bar",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-audio",
+        {
+          "recordAudioAndroid": false,
+          "enableBackgroundPlayback": false
+        }
+      ],
+      [
+        "@sfourdrinier/react-native-ble-plx",
+        {
+          "isBackgroundEnabled": false,
+          "neverForLocation": true,
+          "bluetoothAlwaysPermission": "Allow Measuring Tape to connect to your distance sensor."
+        }
+      ],
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true

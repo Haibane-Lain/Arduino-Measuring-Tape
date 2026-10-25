@@ -1,4 +1,9 @@
-# Plan — bare-minimum prototype
+# Plan — bare-minimum prototype (historical)
+
+> **Superseded:** this document describes the earlier UNO + HC-05 classic-SPP
+> spike. The final application is ESP32 + BLE; see
+> [`../README.md`](../README.md), [`PROTOCOL.md`](PROTOCOL.md) and
+> [`../firmware/README.md`](../firmware/README.md).
 
 Shortest path from the Milestone 1 mockup to a live reading on the phone.
 
